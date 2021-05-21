@@ -22,6 +22,8 @@ struct spisok_struct {
 	struct spisok_struct* next = NULL;
 };
 
+// Функция считывает файл, который содержит в себе данные пользователей. После завершения программы данные пользователей не стираются, а записываются в файл.
+// Данные с файла подгружаются после завершения программы
 void start_add_f() {
 	int start, end;
     std::ifstream input("users.txt");
@@ -80,6 +82,7 @@ void add_f(std::string& add_name, std::string& add_secndN, std::string& add_fath
 	zapis_new(add_name, add_secndN, add_fathland, new_person_card->id);
 	login_list_f(new_person_card->id);
 	
+	if (status_user != "SU") status_user = new_person_card->id;
 	if (glav_p == NULL) glav_p = new_person_card;
 
 	else {
@@ -130,8 +133,26 @@ void del_f(int n) {
 
 }
 
+void change_user_f(std::string& vibor) {
+	spisok_struct* cur = glav_p;
 
-void change(std::string& vibor) {
+	while (cur->next != NULL) {
+		if (cur->id != status_user) cur = cur->next;
+	}
+
+	std::string newAtribut;
+	std::cin >> newAtribut;
+	if (vibor == "surname") cur->Second_Name = newAtribut;
+
+	if(vibor == "name") cur->NAME = newAtribut;
+
+	if(vibor == "fhatherland") cur->Fatherland = newAtribut;
+	
+	log(newAtribut);
+}
+
+
+void change_admin_f(std::string& vibor) {
 	spisok_struct* cur = glav_p;
 
 	std::string poisk_new;
@@ -221,12 +242,12 @@ void command_f(std::string command) {
 		std::string stroka = perevod(n);
 		log(stroka);
 		del_f(n-1);
-    } else if (command == "rand") {
+    } else if (command == "rand" && status_user == "SU") {
 		rand_f();
 	} else if (command == "stop") {
 		exit(0);
 	} else if (command == "help") {
-		std::cout << "TUT NIHUYA" << std::endl;
+		std::cout << "Ну вы там разбиритесь и составте help" << std::endl;
 
 		Sleep(7000);
 	} else if (command == "change") {
@@ -237,28 +258,48 @@ void command_f(std::string command) {
 		log(vibor);
 
 		str_tolower(vibor);
-		change(vibor);
+		if (status_user == "SU") {
+			change_admin_f(vibor);
+		}
+		else {
+			change_user_f(vibor);
+		}
 	} else if (command == "history") {
 		history_f();
 	}
 } 
 
+void vhod_account_f() {
+
+	std::string login, password;
+	std::cout << "Для входа в аккаунт введите совои данные" << '\n'
+		<< "Если у вас нет аккаунта введите new new" << '\n'
+		<< "login and password: ";
+
+	std::cin >> login >> password;
+	status_user = cheack_login_f(login, password);
+
+	if (login == "new" && password == "new") {
+		std::cout << "Введите ФИО" << '\t';
+		command_f("add");
+	}
+
+	if (status_user != "0") std::cout << "Ты вошёл в систему" << '\n';
+}
+
 
 int main() {
-
-	start_add_f();
-	std::string login, password;
-	std::cout << "login and password: ";
-	std::cin >> login >> password;
-	status_user = cheack_login_f(login,password);
-
-	if (status_user != "0") std::cout << "U yspeshno voshel account";
+	start_add_f(); // Подгрузка пользователей из файла
+	setlocale(LC_ALL, "Russian");
+	vhod_account_f();
 
 	std::string command;
-	std::cout << "E/G" << "   ADD | CHANGE | SEE | DEL | RAND | HELP | STOP " << std::endl;
+	std::cout << '\n' <<"E/G" << "   ADD | CHANGE | SEE | DEL | RAND | HELP | STOP " << std::endl;
 	while (true) {
+		std::cout << '\n' <<"Введите что-то: ";
 
 		std::cin >> command;
+		str_tolower(command);
 		log(command);
 
 		if (status_user != "0") {
@@ -266,9 +307,8 @@ int main() {
 			command_f(command);
 		}
 		else {
-			std::cout << "Voidite v account" << std::endl;
+			vhod_account_f();
 		}
-		//system("cls");
 	}
 
 	return 0;
@@ -278,7 +318,11 @@ int main() {
 *  1. Подгрузка аккаунтов из файла **DONE** 
 *  2. Связать login and users 
 *  3. Разделить уровень доступа для обычного юзера и админа
-*   а) Пользователь может удалить только свой аккаунт
+*   а) Пользователь может удалить только свой аккаунт 
 *   б) Пользователь может изменить только свои данные
 *   в) Сделать рейтинг для приаязать этот код к игре жизнь, бкдет выступать в роле рейтинга
+* 
+*Если админ, то может удалять любого по id при этом должно происходить удаление из файлов
+*Еслм обычный юзер,то происходит только его аккаунта
+*При этом достаточно только одной общей функции удаления, в которую приходит id
 */
