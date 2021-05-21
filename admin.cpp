@@ -61,7 +61,7 @@ std::string cheack_login_f(std::string& login, std::string& password) {
 
 void login_list_f(std::string& id){
 	std::string login, password;
-	std::cout << "Login and password: " << '\n';
+	std::cout << "Cоздайте новый логин и пароль" << '\n';
 
 	std::cin >> login >> password;
 
